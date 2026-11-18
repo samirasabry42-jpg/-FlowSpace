@@ -1,0 +1,15 @@
+{
+  "name": "flowspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "author": "Samira Sabry",
+  "description": "AI-powered HR automation portfolio built with n8n",
+  "scripts": {
+    "start": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

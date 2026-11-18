@@ -1,0 +1,10 @@
+import {portfolioData} from './portfolio-data.mjs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+const root=path.resolve(import.meta.dirname,'..');
+await fs.writeFile(path.join(root,'src/workflow-data.js'),await portfolioData());
+const files=['index.html','style.css','portfolio.css','app.js','catalog.js','demo.js','portfolio.js','workflow-data.js'];const assets={};for(const file of files)assets[file]={body:await fs.readFile(path.join(root,'src',file),'utf8'),type:file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':'text/javascript'};
+const admin=await fs.readFile(path.join(root,'src/admin.js'),'utf8');
+const server=admin+'\n'+(await fs.readFile(path.join(root,'src/server.js'),'utf8')).replace("import {adminApi} from './admin.js';",'');
+const worker=server+`\nconst assets=${JSON.stringify(assets)};\nexport default { async fetch(request,env){const url=new URL(request.url);if(url.pathname.startsWith('/api/'))return api(request,env);if(!['GET','HEAD'].includes(request.method))return new Response('Method not allowed',{status:405});const key=url.pathname==='/'?'index.html':url.pathname.slice(1);const item=assets[key];if(!item)return new Response('Not found',{status:404});return new Response(request.method==='HEAD'?null:item.body,{headers:{'Content-Type':item.type+'; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'"}});}};\n`;
+await fs.mkdir(path.join(root,'dist/server'),{recursive:true});await fs.writeFile(path.join(root,'dist/server/index.js'),worker);console.log('Built dependency-free Worker with '+files.length+' embedded assets.');
